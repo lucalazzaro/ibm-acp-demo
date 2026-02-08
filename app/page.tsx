@@ -1,6 +1,15 @@
 "use client";
 import React, { useState } from 'react';
-import { ShieldCheck, Database, Receipt, BrainCircuit, Activity, CheckCircle2, Send, Info } from 'lucide-react';
+import { 
+  ShieldCheck, 
+  Database, 
+  Receipt, 
+  BrainCircuit, 
+  CheckCircle2, 
+  Info, 
+  ChevronRight, 
+  Activity // <--- Aggiungi questa
+} from 'lucide-react';
 
 type AgentMessage = {
   from: string;
@@ -10,145 +19,162 @@ type AgentMessage = {
   status: 'info' | 'success' | 'warning';
 };
 
-const STEPS_INFO = [
-  {
+const AGENTS_DATA = [
+  { 
+    id: 0, 
+    name: "Extractor Agent", 
+    icon: BrainCircuit, 
+    label: "Sintesi dei Sistemi",
     title: "Step 1: Ingestione e Decomposizione",
-    desc: "L'input non strutturato (ricevuta) viene inviato all'Agente Estrattore. Qui applichiamo principi di System Engineering per trasformare dati grezzi in metadati strutturati tramite LLM (IBM Granite)."
+    desc: "L'input non strutturato viene inviato all'Agente Estrattore. Qui applichiamo principi di System Engineering per trasformare dati grezzi in metadati strutturati tramite IBM Granite.",
+    log: { from: "User_Interface", to: "Extractor_Agent", msg: "Invio ricevuta (Cena Business - 85€)", type: "info" as const }
   },
-  {
-    title: "Step 2: Sintesi del Sistema",
-    desc: "L'ACP funge da 'bus' di comunicazione. L'estrattore passa il JSON al Policy Agent. L'architettura è modulare: potrei cambiare il modello di estrazione senza impattare la logica di business."
+  { 
+    id: 1, 
+    name: "Policy Agent", 
+    icon: ShieldCheck, 
+    label: "Governance & Compliance",
+    title: "Step 2: Business Logic & Rules",
+    desc: "L'ACP passa il JSON al Policy Agent. L'architettura è modulare: possiamo aggiornare le policy aziendali centralmente senza modificare i singoli agenti.",
+    log: { from: "Extractor_Agent", to: "Policy_Agent", msg: "Dati estratti: { importo: 85, cat: 'Food' }", type: "success" as const }
   },
-  {
-    title: "Step 3: Sistemi Stocastici e Regole",
-    desc: "Il Policy Agent valuta la conformità. In caso di incertezza (modello probabilistico), il protocollo ACP instrada la richiesta verso un sistema di validazione o un budget check."
+  { 
+    id: 2, 
+    name: "Budget Agent", 
+    icon: Database, 
+    label: "ERP Integration",
+    title: "Step 3: Sistemi Stocastici",
+    desc: "Il Policy Agent interroga il Budget Agent via ACP. Qui gestiamo la probabilità: se il budget è quasi esaurito, il sistema solleva un alert preventivo.",
+    log: { from: "Policy_Agent", to: "Budget_Agent", msg: "Verifica limite 'Food' (Cap: 50€). Risultato: Over-budget.", type: "warning" as const }
   },
-  {
-    title: "Step 4: Governance e Human-in-the-Loop",
-    desc: "Se viene rilevata una violazione, l'ACP attiva il layer di Governance. Viene creato un Audit Trail immutabile e la decisione finale viene delegata a un supervisore umano."
+  { 
+    id: 3, 
+    name: "Governance Layer", 
+    icon: CheckCircle2, 
+    label: "Human-in-the-Loop",
+    title: "Step 4: Audit & Decisione Finale",
+    desc: "L'ACP attiva il layer di Governance per creare un Audit Trail immutabile. Il processo richiede ora un'approvazione umana per risolvere la violazione di policy.",
+    log: { from: "Governance_Layer", to: "User_Interface", msg: "Task creato: Revisione manuale richiesta per spesa 85€.", type: "warning" as const }
   }
 ];
 
 export default function ACPDemo() {
-  const [isProcessing, setIsProcessing] = useState(false);
   const [logs, setLogs] = useState<AgentMessage[]>([]);
   const [activeStep, setActiveStep] = useState(-1);
 
-  const addLog = (from: string, to: string, payload: string, status: 'info' | 'success' | 'warning' = 'info') => {
-    const newLog = {
-      from, to, payload, status,
+  const handleStepClick = (stepIndex: number) => {
+    // Se lo step è già stato attivato, non aggiungiamo log duplicati ma cambiamo solo la descrizione
+    setActiveStep(stepIndex);
+    
+    const step = AGENTS_DATA[stepIndex];
+    const newLog: AgentMessage = {
+      from: step.log.from,
+      to: step.log.to,
+      payload: step.log.msg,
+      status: step.log.type,
       timestamp: new Date().toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })
     };
-    setLogs(prev => [newLog, ...prev]);
+
+    // Aggiungiamo il log in coda (Bottom)
+    setLogs(prev => [...prev, newLog]);
   };
 
-  const simulateProcess = async () => {
-    setIsProcessing(true);
+  const resetFlow = () => {
     setLogs([]);
-    setActiveStep(0);
-    addLog("User_Interface", "Extractor_Agent", "Invio ricevuta (Cena Business - 85€)", "info");
-    await new Promise(r => setTimeout(r, 2000));
-
-    setActiveStep(1);
-    addLog("Extractor_Agent", "Policy_Agent", "Dati: { importo: 85, cat: 'Food' }", "success");
-    await new Promise(r => setTimeout(r, 2000));
-
-    setActiveStep(2);
-    addLog("Policy_Agent", "Budget_Agent", "Verifica limite 'Food' (Cap: 50€)", "warning");
-    await new Promise(r => setTimeout(r, 2000));
-
-    setActiveStep(3);
-    addLog("Governance_Layer", "User_Interface", "Violazione Policy: Richiesta approvazione Manager.", "warning");
-    setIsProcessing(false);
+    setActiveStep(-1);
   };
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 p-8 font-sans">
       <header className="max-w-6xl mx-auto mb-10 flex justify-between items-end">
         <div>
-          <h1 className="text-3xl font-bold text-blue-800 tracking-tighter">IBM ACP PROTOTYPE</h1>
-          <p className="text-slate-500 font-medium">Cognitive Solution Architecture | Multi-Agent Orchestration</p>
+          <h1 className="text-3xl font-bold text-blue-800 tracking-tighter uppercase">IBM ACP Explorer</h1>
+          <p className="text-slate-500 font-medium">Interactive Multi-Agent Architecture PoC</p>
         </div>
-        <div className="text-right text-xs text-slate-400 font-mono">
-          DOC_ID: IBM-EXP-2026<br/>STATUS: AGENTIC_FLOW_ACTIVE
-        </div>
+        <button onClick={resetFlow} className="text-xs font-mono text-blue-600 hover:underline">RESET_SYSTEM</button>
       </header>
 
       <main className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
-          {/* Box di Controllo */}
-          <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-            <div className="flex justify-between items-center mb-6">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-100 rounded-lg text-blue-600"><Receipt size={20}/></div>
-                <h2 className="font-bold">Expense Validation Flow</h2>
-              </div>
-              <button 
-                onClick={simulateProcess}
-                disabled={isProcessing}
-                className={`px-8 py-3 rounded-full font-bold text-sm uppercase tracking-widest transition-all ${isProcessing ? 'bg-slate-100 text-slate-400' : 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg active:scale-95'}`}
-              >
-                {isProcessing ? "Processing..." : "Start ACP Flow"}
-              </button>
+          
+          {/* Box Istruzioni */}
+          <div className="bg-white p-4 rounded-xl border border-blue-100 shadow-sm flex items-center gap-4">
+            <div className="bg-blue-600 text-white p-2 rounded-full animate-pulse">
+              <ChevronRight size={20} />
             </div>
-
-            {/* Architectural Insight Box */}
-            <div className="min-h-25 bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg">
-              <div className="flex gap-2 text-blue-700 mb-1">
-                <Info size={16} />
-                <span className="text-xs font-bold uppercase">Architectural Insight</span>
-              </div>
-              {activeStep === -1 ? (
-                <p className="text-sm text-blue-900/70 italic">Avvia il workflow per vedere l'analisi dell'architetto in tempo reale.</p>
-              ) : (
-                <div>
-                  <h4 className="text-sm font-bold text-blue-900">{STEPS_INFO[activeStep].title}</h4>
-                  <p className="text-sm text-blue-800/80 leading-relaxed">{STEPS_INFO[activeStep].desc}</p>
-                </div>
-              )}
-            </div>
+            <p className="text-sm font-medium text-slate-600">
+              {activeStep === -1 ? "Clicca sul primo agente (Extractor) per iniziare la simulazione del protocollo." : "Clicca sul prossimo agente per avanzare nel workflow."}
+            </p>
           </div>
 
-          {/* Grid Agenti */}
+          {/* Grid Agenti Cliccabili */}
           <div className="grid grid-cols-2 gap-4">
-            {[
-              { name: "Extractor Agent", icon: BrainCircuit, color: "text-purple-500" },
-              { name: "Policy Agent", icon: ShieldCheck, color: "text-emerald-500" },
-              { name: "Budget Agent", icon: Database, color: "text-amber-500" },
-              { name: "Governance Layer", icon: CheckCircle2, color: "text-blue-500" }
-            ].map((agent, i) => (
-              <div key={i} className={`p-6 rounded-2xl border-2 transition-all duration-500 bg-white ${activeStep === i ? 'border-blue-500 shadow-xl -translate-y-1' : 'border-slate-100 opacity-60'}`}>
-                <agent.icon className={`${activeStep === i ? agent.color : 'text-slate-300'} mb-3`} size={32} />
+            {AGENTS_DATA.map((agent, i) => (
+              <button 
+                key={i} 
+                onClick={() => handleStepClick(i)}
+                disabled={i > activeStep + 1} // Opzionale: costringe l'ordine sequenziale
+                className={`p-6 rounded-2xl border-2 text-left transition-all duration-300 bg-white shadow-sm
+                  ${activeStep === i ? 'border-blue-500 ring-4 ring-blue-50 shadow-xl scale-[1.02] z-10' : 'border-slate-100'}
+                  ${i > activeStep + 1 ? 'opacity-30 grayscale cursor-not-allowed' : 'hover:border-blue-300 opacity-100'}
+                `}
+              >
+                <agent.icon className={`${activeStep === i ? 'text-blue-600' : 'text-slate-400'} mb-3`} size={32} />
                 <h3 className="font-bold text-slate-800">{agent.name}</h3>
-                <div className="mt-2 w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                  <div className={`h-full bg-blue-500 transition-all duration-1000 ${activeStep === i ? 'w-full' : 'w-0'}`}></div>
-                </div>
-              </div>
+                <p className="text-xs text-slate-500 uppercase mt-1">{agent.label}</p>
+              </button>
             ))}
+          </div>
+
+          {/* Box Descrittivo Dinamico */}
+          <div className="min-h-35 bg-slate-900 text-white p-6 rounded-2xl border border-slate-700 shadow-2xl relative overflow-hidden">
+             <div className="absolute top-0 right-0 p-4 opacity-10 italic font-serif text-4xl">Architect Insight</div>
+             {activeStep === -1 ? (
+                <div className="flex items-center gap-3 h-full justify-center">
+                  <Info className="text-blue-400" />
+                  <p className="text-slate-400 uppercase tracking-widest text-xs">In attesa di attivazione protocollo ACP...</p>
+                </div>
+             ) : (
+                <div className="animate-in fade-in zoom-in duration-300">
+                  <h4 className="text-blue-400 font-bold mb-2 flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-blue-400" /> {AGENTS_DATA[activeStep].title}
+                  </h4>
+                  <p className="text-slate-300 text-sm leading-relaxed">{AGENTS_DATA[activeStep].desc}</p>
+                </div>
+             )}
           </div>
         </div>
 
-        {/* Protocol Stream (Logs) */}
-        <div className="bg-[#0a0a0a] rounded-2xl shadow-2xl flex flex-col h-screen border border-slate-800">
-          <div className="p-4 border-b border-slate-800 flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
-            <span className="text-[10px] font-mono text-slate-400 uppercase tracking-widest">ACP Protocol Real-time Stream</span>
+        {/* Protocol Stream (Logs TOP TO BOTTOM) */}
+        <div className="bg-white rounded-2xl shadow-xl flex flex-col h-96 border border-slate-200 overflow-hidden font-mono">
+          <div className="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
+               <Activity size={12} className="text-blue-500" /> ACP Message Log
+            </span>
           </div>
-          <div className="p-6 overflow-y-auto flex-1 font-mono text-[11px] space-y-4">
+          <div className="p-4 overflow-y-auto flex-1 text-[11px] space-y-4 flex flex-col">
+            {logs.length === 0 && <p className="text-slate-400 italic text-center mt-10">Protocollo inattivo</p>}
             {logs.map((log, i) => (
-              <div key={i} className="animate-in fade-in slide-in-from-right duration-500">
-                <div className="flex justify-between text-slate-500 text-[9px] mb-1">
-                  <span>{log.from} &gt;&gt; {log.to}</span>
+              <div key={i} className="animate-in slide-in-from-top duration-500 border-l-2 border-blue-500 pl-3 py-1 bg-slate-50 rounded-r">
+                <div className="flex justify-between text-[9px] text-slate-400 mb-1">
+                  <span className="font-bold">{log.from} &gt; {log.to}</span>
                   <span>{log.timestamp}</span>
                 </div>
-                <div className={`p-2 rounded ${log.status === 'warning' ? 'bg-yellow-500/10 text-yellow-200 border border-yellow-500/20' : 'bg-blue-500/5 text-blue-200 border border-blue-500/20'}`}>
-                  {log.payload}
+                <div className={`font-bold ${log.status === 'warning' ? 'text-amber-600' : 'text-blue-700'}`}>
+                   {log.payload}
                 </div>
               </div>
             ))}
+            {/* Scroll anchor per forzare la vista in fondo se i log superano l'altezza */}
+            <div className="h-4" />
           </div>
         </div>
       </main>
+
+      <footer className="max-w-6xl mx-auto mt-10 pt-4 border-t border-slate-200 text-[10px] text-slate-400 flex justify-between uppercase tracking-widest">
+        <span>IBM GenAI Engineering Framework</span>
+        <span>Confidential - Architect Interview Tool</span>
+      </footer>
     </div>
   );
 }
