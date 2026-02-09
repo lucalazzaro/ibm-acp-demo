@@ -1,36 +1,34 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# IBM ACP Architecture PoC: Agentic Finance Workflow
 
-## Getting Started
+## 🚀 Overview
+This Proof of Concept (PoC) demonstrates the implementation of a **Multi-Agent System (MAS)** orchestrated through the **IBM Agent Communication Protocol (ACP)**. 
 
-First, run the development server:
+The project simulates a corporate financial expense approval process where specialized AI agents collaborate to extract data, verify compliance, check budgets, and trigger governance workflows.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 🏗️ Architectural Vision
+As an AI Solution Architect, this PoC focuses on the following core principles:
+- **System Decomposition**: Breaking down a complex business problem into specialized, autonomous cognitive agents.
+- **Interoperability (ACP)**: Utilizing a standardized communication protocol to ensure seamless data exchange and task negotiation.
+- **Trust & Governance**: Implementing a real-time Audit Trail and "Human-in-the-loop" triggers for high-risk decisions.
+- **Scalability**: A modular design that allows adding new agents (e.g., Legal or Tax agents) without disrupting the existing ecosystem.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🛠️ Tech Stack
+- **Framework**: Next.js 14 (App Router)
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS
+- **Icons**: Lucide React
+- **Deployment**: Vercel
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🤖 Agent Workflow
+1. **Extractor Agent**: Converts unstructured receipt data into structured JSON (mimicking IBM Granite LLM capabilities).
+2. **Policy Agent**: Validates data against corporate compliance rules.
+3. **Budget Agent**: Integrates with ERP-simulated logic to check department funds.
+4. **Governance Layer**: Provides final oversight, audit logging, and manual intervention triggers.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 📈 Key Insights for Interviewers
+- **Observability**: The "ACP Message Log" provides a real-time view of how agents negotiate and pass metadata.
+- **Stochastic Management**: The system is designed to handle the probabilistic nature of AI by implementing deterministic guardrails at the protocol level.
+- **Enterprise Ready**: Concepts align with **IBM watsonx.governance** and **watsonx.ai** orchestration patterns.
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+*Developed by Luca Lazzaro - AI Solution Architect Candidate*
